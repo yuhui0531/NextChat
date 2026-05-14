@@ -1,10 +1,16 @@
 import webpack from "webpack";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const mode = process.env.BUILD_MODE ?? "standalone";
 console.log("[Next] build mode", mode);
 
 const disableChunk = !!process.env.DISABLE_CHUNK || mode === "export";
 console.log("[Next] build with chunk: ", !disableChunk);
+
+const isApp = !!process.env.BUILD_APP;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -23,6 +29,16 @@ const nextConfig = {
     config.resolve.fallback = {
       child_process: false,
     };
+
+    // Tauri 静态导出不支持 server actions，把 MCP actions 替换成空 stub。
+    if (isApp) {
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /[\\/]app[\\/]mcp[\\/]actions(\.ts)?$/,
+          path.resolve(__dirname, "app/mcp/actions.stub.ts"),
+        ),
+      );
+    }
 
     return config;
   },

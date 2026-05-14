@@ -35,6 +35,34 @@ English / [简体中文](./README_CN.md)
 
 </div>
 
+## ✨ What's different in this fork
+
+This fork is based on [ChatGPTNextWeb/NextChat](https://github.com/ChatGPTNextWeb/NextChat) and adds the following changes:
+
+### 🎨 AI image generation as a first-class feature
+- New dedicated **Image provider** with its own endpoint, API key, and custom model list, configured under a top-level **AI 生图 / AI Image Generation** section in settings.
+- New `ImageApi` client (OpenAI-compatible) that pulls models from `/v1/models` and generates images via `/v1/images/generations`.
+- New `onImageUserInput` store action that routes a single prompt through the Image provider while reusing the existing chat message persistence flow.
+- New explicit **生图 / Generate Image** button in the chat action bar, plus lightweight prefix-based intent detection (e.g. `帮我生图`, `画一张...`) so users can trigger image generation without switching the chat model.
+- Generated images render inline in the conversation and now support **click-to-zoom preview**.
+
+### 🧹 Slimmer model picker
+- Main model selector and compress-model selector default to **only the models the user explicitly configured** (via the existing "Custom Models" field). Built-in defaults are hidden unless `+all` is added.
+- Built-in Image provider entries are removed from `DEFAULT_MODELS`; image models are sourced solely from user configuration.
+- `mergeModels` no longer drops availability across providers when remote model lists arrive.
+
+### 🧼 Cleaner settings UI
+- Removed the "Use NextChat AI (most cost-effective)" SaaS promo card.
+- Removed unused config blocks: Azure / Baidu / Tencent / Stability / 302.AI (they remain available via the underlying provider system if you wire them back in).
+
+### 🛠 Build & CI
+- Added a macOS-only release workflow (`.github/workflows/release-macos.yml`) that publishes a universal `.dmg` / `.app` to GitHub Releases when you push a `v*` tag.
+- MCP server actions are stubbed out automatically when building the Tauri desktop app (`BUILD_APP=1`), so `yarn app:build` no longer fails on "Server Actions are not supported with static export".
+- Added `CLAUDE.md` with repo-specific guidance for AI coding agents.
+- Added `test/image-model-utils.test.ts` covering image-model detection helpers.
+
+> Upstream is still tracked under the `upstream` git remote so future syncs remain straightforward.
+
 ## ❤️ Sponsor AI API
 
 <a href='https://302.ai/'>

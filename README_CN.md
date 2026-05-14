@@ -14,6 +14,34 @@
 
 </div>
 
+## ✨ 本 Fork 与上游的差异
+
+本仓库基于 [ChatGPTNextWeb/NextChat](https://github.com/ChatGPTNextWeb/NextChat) Fork，并在其基础上做了如下改动：
+
+### 🎨 把 AI 生图做成一等公民
+- 新增独立的 **Image Provider**：单独的接口地址、API Key 和生图模型清单，放在设置页顶部独立的 **AI 生图** 区块。
+- 新增 `ImageApi`（OpenAI 兼容）：模型来源 `/v1/models`，生图走 `/v1/images/generations`。
+- 新增 `onImageUserInput` store action：复用现有聊天消息持久化链路，把生图请求强制路由到 Image Provider。
+- 聊天工具栏新增 **生图** 按钮；同时支持前缀意图触发（如 `帮我生图`、`画一张...`），无需切换主聊天模型。
+- 生成的图片直接内联在对话里，并支持**点击放大预览**。
+
+### 🧹 模型列表更克制
+- 主模型选择器与“对话摘要模型”默认只显示**用户在「自定义模型名」里配置过的模型**；内置默认模型不再出现，除非显式写 `+all`。
+- `DEFAULT_MODELS` 中移除了内置的 Image Provider 条目，生图模型完全由用户配置驱动。
+- `mergeModels` 在合并不同 Provider 的远端模型列表时不再相互覆盖可用性。
+
+### 🧼 设置页面更干净
+- 移除“使用 NextChat AI（性价比最高的方案）”推广卡片。
+- 移除 Azure / Baidu / Tencent / Stability / 302.AI 等已不再展示的 ConfigComponent 死代码（底层 Provider 体系保留）。
+
+### 🛠 构建与 CI
+- 新增 `.github/workflows/release-macos.yml`：push `v*` tag 时自动构建并发布通用 macOS `.dmg` / `.app` 到 GitHub Releases。
+- Tauri 打桌面端时（`BUILD_APP=1`）自动用空 stub 替换 MCP server actions，避免 `yarn app:build` 报 “Server Actions are not supported with static export”。
+- 新增 `CLAUDE.md`：给 AI 编码助手的本仓库指引。
+- 新增 `test/image-model-utils.test.ts`：覆盖生图模型识别相关 helper。
+
+> 上游仓库仍以 `upstream` remote 形式保留，后续同步上游代码很方便。
+
 ## Sponsor AI API
 
 <a href='https://302.ai/'>
