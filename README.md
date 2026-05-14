@@ -56,7 +56,7 @@ This fork is based on [ChatGPTNextWeb/NextChat](https://github.com/ChatGPTNextWe
 - Removed unused config blocks: Azure / Baidu / Tencent / Stability / 302.AI (they remain available via the underlying provider system if you wire them back in).
 
 ### 🛠 Build & CI
-- Added a macOS-only release workflow (`.github/workflows/release-macos.yml`) that publishes a universal `.dmg` / `.app` to GitHub Releases when you push a `v*` tag.
+- Added a release workflow (`.github/workflows/release.yml`) that builds the Tauri desktop app for **macOS (universal)**, **Windows (x64)** and **Linux (x64)** in parallel when you push a `v*` tag, and uploads every artifact (`.dmg` / `.app.tar.gz` / `.msi` / `.exe` / `.AppImage` / `.deb`) to a single GitHub Release.
 - MCP server actions are stubbed out automatically when building the Tauri desktop app (`BUILD_APP=1`), so `yarn app:build` no longer fails on "Server Actions are not supported with static export".
 - Added `CLAUDE.md` with repo-specific guidance for AI coding agents.
 - Added `test/image-model-utils.test.ts` covering image-model detection helpers.

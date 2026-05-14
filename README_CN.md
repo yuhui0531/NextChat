@@ -35,7 +35,7 @@
 - 移除 Azure / Baidu / Tencent / Stability / 302.AI 等已不再展示的 ConfigComponent 死代码（底层 Provider 体系保留）。
 
 ### 🛠 构建与 CI
-- 新增 `.github/workflows/release-macos.yml`：push `v*` tag 时自动构建并发布通用 macOS `.dmg` / `.app` 到 GitHub Releases。
+- 新增 `.github/workflows/release.yml`：push `v*` tag 时并行构建 **macOS（通用包）**、**Windows（x64）**、**Linux（x64）** 桌面端，并把全部产物（`.dmg` / `.app.tar.gz` / `.msi` / `.exe` / `.AppImage` / `.deb`）一次性上传到同一个 GitHub Release。
 - Tauri 打桌面端时（`BUILD_APP=1`）自动用空 stub 替换 MCP server actions，避免 `yarn app:build` 报 “Server Actions are not supported with static export”。
 - 新增 `CLAUDE.md`：给 AI 编码助手的本仓库指引。
 - 新增 `test/image-model-utils.test.ts`：覆盖生图模型识别相关 helper。
