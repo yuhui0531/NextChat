@@ -296,6 +296,16 @@ export function isDalle3(model: string) {
   return "dall-e-3" === model;
 }
 
+export function isImageGenerationModel(
+  model: string,
+  provider?: ServiceProvider,
+) {
+  if (provider === ServiceProvider.Image) {
+    return true;
+  }
+  return isDalle3(model) || model.toLowerCase().includes("cogview");
+}
+
 export function getTimeoutMSByModel(model: string) {
   model = model.toLowerCase();
   if (
@@ -310,8 +320,14 @@ export function getTimeoutMSByModel(model: string) {
   return REQUEST_TIMEOUT_MS;
 }
 
-export function getModelSizes(model: string): ModelSize[] {
-  if (isDalle3(model)) {
+export function getModelSizes(
+  model: string,
+  provider?: ServiceProvider,
+): ModelSize[] {
+  if (
+    isImageGenerationModel(model, provider) &&
+    !model.toLowerCase().includes("cogview")
+  ) {
     return ["1024x1024", "1792x1024", "1024x1792"];
   }
   if (model.toLowerCase().includes("cogview")) {
@@ -328,11 +344,17 @@ export function getModelSizes(model: string): ModelSize[] {
   return [];
 }
 
-export function supportsCustomSize(model: string): boolean {
-  return getModelSizes(model).length > 0;
+export function supportsCustomSize(
+  model: string,
+  provider?: ServiceProvider,
+): boolean {
+  return getModelSizes(model, provider).length > 0;
 }
 
 export function showPlugins(provider: ServiceProvider, model: string) {
+  if (isImageGenerationModel(model, provider)) {
+    return false;
+  }
   if (
     provider == ServiceProvider.OpenAI ||
     provider == ServiceProvider.Azure ||

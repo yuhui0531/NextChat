@@ -1,6 +1,6 @@
 import {
   getMessageTextContent,
-  isDalle3,
+  isImageGenerationModel,
   safeLocalStorage,
   trimTopic,
 } from "../utils";
@@ -527,6 +527,96 @@ export const useChatStore = createPersistStore(
         });
       },
 
+      async onImageUserInput(
+        content: string,
+        imageModel: string,
+        imageOptions?: {
+          size?: ModelConfig["size"];
+          quality?: ModelConfig["quality"];
+          style?: ModelConfig["style"];
+        },
+      ) {
+        const session = get().currentSession();
+        const modelConfig = {
+          ...session.mask.modelConfig,
+          providerName: ServiceProvider.Image,
+          model: imageModel as ModelType,
+          size: imageOptions?.size ?? session.mask.modelConfig.size,
+          quality: imageOptions?.quality ?? session.mask.modelConfig.quality,
+          style: imageOptions?.style ?? session.mask.modelConfig.style,
+        };
+
+        const userMessage: ChatMessage = createMessage({
+          role: "user",
+          content,
+        });
+
+        const botMessage: ChatMessage = createMessage({
+          role: "assistant",
+          streaming: true,
+          model: modelConfig.model,
+        });
+
+        const sendMessages = [userMessage];
+        const messageIndex = session.messages.length + 1;
+
+        get().updateTargetSession(session, (session) => {
+          session.messages = session.messages.concat([userMessage, botMessage]);
+        });
+
+        const api: ClientApi = getClientApi(ServiceProvider.Image);
+        api.llm.chat({
+          messages: sendMessages,
+          config: { ...modelConfig, stream: false },
+          onUpdate(message) {
+            botMessage.streaming = true;
+            if (message) {
+              botMessage.content = message;
+            }
+            get().updateTargetSession(session, (session) => {
+              session.messages = session.messages.concat();
+            });
+          },
+          async onFinish(message) {
+            botMessage.streaming = false;
+            if (message) {
+              botMessage.content = message;
+              botMessage.date = new Date().toLocaleString();
+              get().onNewMessage(botMessage, session);
+            }
+            ChatControllerPool.remove(session.id, botMessage.id);
+          },
+          onError(error) {
+            const isAborted = error.message?.includes?.("aborted");
+            botMessage.content +=
+              "\n\n" +
+              prettyObject({
+                error: true,
+                message: error.message,
+              });
+            botMessage.streaming = false;
+            userMessage.isError = !isAborted;
+            botMessage.isError = !isAborted;
+            get().updateTargetSession(session, (session) => {
+              session.messages = session.messages.concat();
+            });
+            ChatControllerPool.remove(
+              session.id,
+              botMessage.id ?? messageIndex,
+            );
+
+            console.error("[Image Chat] failed ", error);
+          },
+          onController(controller) {
+            ChatControllerPool.addController(
+              session.id,
+              botMessage.id ?? messageIndex,
+              controller,
+            );
+          },
+        });
+      },
+
       getMemoryPrompt() {
         const session = get().currentSession();
 
@@ -665,8 +755,10 @@ export const useChatStore = createPersistStore(
         const config = useAppConfig.getState();
         const session = targetSession;
         const modelConfig = session.mask.modelConfig;
-        // skip summarize when using dalle3?
-        if (isDalle3(modelConfig.model)) {
+        // skip summarize when using image generation models
+        if (
+          isImageGenerationModel(modelConfig.model, modelConfig.providerName)
+        ) {
           return;
         }
 

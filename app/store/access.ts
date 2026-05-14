@@ -1,9 +1,10 @@
 import {
+  ApiPath,
   GoogleSafetySettingsThreshold,
   ServiceProvider,
   StoreKey,
-  ApiPath,
   OPENAI_BASE_URL,
+  IMAGE_BASE_URL,
   ANTHROPIC_BASE_URL,
   GEMINI_BASE_URL,
   BAIDU_BASE_URL,
@@ -31,6 +32,8 @@ let fetchState = 0; // 0 not fetch, 1 fetching, 2 done
 const isApp = getClientConfig()?.buildMode === "export";
 
 const DEFAULT_OPENAI_URL = isApp ? OPENAI_BASE_URL : ApiPath.OpenAI;
+
+const DEFAULT_IMAGE_URL = isApp ? IMAGE_BASE_URL : ApiPath.OpenAI;
 
 const DEFAULT_GOOGLE_URL = isApp ? GEMINI_BASE_URL : ApiPath.Google;
 
@@ -71,6 +74,11 @@ const DEFAULT_ACCESS_STATE = {
   // openai
   openaiUrl: DEFAULT_OPENAI_URL,
   openaiApiKey: "",
+
+  // image
+  imageUrl: DEFAULT_IMAGE_URL,
+  imageApiKey: "",
+  imageCustomModels: "",
 
   // azure
   azureUrl: "",
@@ -176,6 +184,10 @@ export const useAccessStore = createPersistStore(
       return ensure(get(), ["openaiApiKey"]);
     },
 
+    isValidImage() {
+      return ensure(get(), ["imageApiKey"]);
+    },
+
     isValidAzure() {
       return ensure(get(), ["azureUrl", "azureApiKey", "azureApiVersion"]);
     },
@@ -232,6 +244,7 @@ export const useAccessStore = createPersistStore(
       // has token or has code or disabled access control
       return (
         this.isValidOpenAI() ||
+        this.isValidImage() ||
         this.isValidAzure() ||
         this.isValidGoogle() ||
         this.isValidAnthropic() ||

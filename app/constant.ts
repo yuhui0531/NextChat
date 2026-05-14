@@ -12,6 +12,7 @@ export const RUNTIME_CONFIG_DOM = "danger-runtime-config";
 export const STABILITY_BASE_URL = "https://api.stability.ai";
 
 export const OPENAI_BASE_URL = "https://api.openai.com";
+export const IMAGE_BASE_URL = OPENAI_BASE_URL;
 export const ANTHROPIC_BASE_URL = "https://api.anthropic.com";
 
 export const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/";
@@ -119,6 +120,7 @@ export const EXPORT_MESSAGE_CLASS_NAME = "export-markdown";
 
 export enum ServiceProvider {
   OpenAI = "OpenAI",
+  Image = "Image",
   Azure = "Azure",
   Google = "Google",
   Anthropic = "Anthropic",
@@ -148,6 +150,7 @@ export enum GoogleSafetySettingsThreshold {
 export enum ModelProvider {
   Stability = "Stability",
   GPT = "GPT",
+  Image = "Image",
   GeminiPro = "GeminiPro",
   Claude = "Claude",
   Ernie = "Ernie",
@@ -182,6 +185,10 @@ export const OpenaiPath = {
   UsagePath: "dashboard/billing/usage",
   SubsPath: "dashboard/billing/subscription",
   ListModelPath: "v1/models",
+};
+
+export const ImageProvider = {
+  ExampleEndpoint: IMAGE_BASE_URL,
 };
 
 export const Azure = {
@@ -493,7 +500,7 @@ export const VISION_MODEL_REGEXES = [
   /o3/,
   /o4-mini/,
   /grok-4/i,
-  /gpt-5/
+  /gpt-5/,
 ];
 
 export const EXCLUDE_VISION_MODEL_REGEXES = [/claude-3-5-haiku-20241022/];
@@ -561,7 +568,7 @@ const googleModels = [
   "gemini-2.0-pro-exp",
   "gemini-2.0-pro-exp-02-05",
   "gemini-2.5-pro-preview-06-05",
-  "gemini-2.5-pro"
+  "gemini-2.5-pro",
 ];
 
 const anthropicModels = [
@@ -763,7 +770,7 @@ export const DEFAULT_MODELS = [
       id: "azure",
       providerName: "Azure",
       providerType: "azure",
-      sorted: 2,
+      sorted: 3,
     },
   })),
   ...googleModels.map((name) => ({
@@ -774,7 +781,7 @@ export const DEFAULT_MODELS = [
       id: "google",
       providerName: "Google",
       providerType: "google",
-      sorted: 3,
+      sorted: 4,
     },
   })),
   ...anthropicModels.map((name) => ({
@@ -785,7 +792,7 @@ export const DEFAULT_MODELS = [
       id: "anthropic",
       providerName: "Anthropic",
       providerType: "anthropic",
-      sorted: 4,
+      sorted: 5,
     },
   })),
   ...baiduModels.map((name) => ({
@@ -796,7 +803,7 @@ export const DEFAULT_MODELS = [
       id: "baidu",
       providerName: "Baidu",
       providerType: "baidu",
-      sorted: 5,
+      sorted: 6,
     },
   })),
   ...bytedanceModels.map((name) => ({
@@ -807,7 +814,7 @@ export const DEFAULT_MODELS = [
       id: "bytedance",
       providerName: "ByteDance",
       providerType: "bytedance",
-      sorted: 6,
+      sorted: 7,
     },
   })),
   ...alibabaModes.map((name) => ({
@@ -818,7 +825,7 @@ export const DEFAULT_MODELS = [
       id: "alibaba",
       providerName: "Alibaba",
       providerType: "alibaba",
-      sorted: 7,
+      sorted: 8,
     },
   })),
   ...tencentModels.map((name) => ({
@@ -829,7 +836,7 @@ export const DEFAULT_MODELS = [
       id: "tencent",
       providerName: "Tencent",
       providerType: "tencent",
-      sorted: 8,
+      sorted: 9,
     },
   })),
   ...moonshotModels.map((name) => ({
@@ -840,7 +847,7 @@ export const DEFAULT_MODELS = [
       id: "moonshot",
       providerName: "Moonshot",
       providerType: "moonshot",
-      sorted: 9,
+      sorted: 10,
     },
   })),
   ...iflytekModels.map((name) => ({
@@ -851,7 +858,7 @@ export const DEFAULT_MODELS = [
       id: "iflytek",
       providerName: "Iflytek",
       providerType: "iflytek",
-      sorted: 10,
+      sorted: 11,
     },
   })),
   ...xAIModes.map((name) => ({
@@ -862,7 +869,7 @@ export const DEFAULT_MODELS = [
       id: "xai",
       providerName: "XAI",
       providerType: "xai",
-      sorted: 11,
+      sorted: 12,
     },
   })),
   ...chatglmModels.map((name) => ({
@@ -873,7 +880,7 @@ export const DEFAULT_MODELS = [
       id: "chatglm",
       providerName: "ChatGLM",
       providerType: "chatglm",
-      sorted: 12,
+      sorted: 13,
     },
   })),
   ...deepseekModels.map((name) => ({
@@ -884,7 +891,7 @@ export const DEFAULT_MODELS = [
       id: "deepseek",
       providerName: "DeepSeek",
       providerType: "deepseek",
-      sorted: 13,
+      sorted: 14,
     },
   })),
   ...siliconflowModels.map((name) => ({
@@ -895,7 +902,7 @@ export const DEFAULT_MODELS = [
       id: "siliconflow",
       providerName: "SiliconFlow",
       providerType: "siliconflow",
-      sorted: 14,
+      sorted: 15,
     },
   })),
   ...ai302Models.map((name) => ({
@@ -906,7 +913,7 @@ export const DEFAULT_MODELS = [
       id: "ai302",
       providerName: "302.AI",
       providerType: "ai302",
-      sorted: 15,
+      sorted: 16,
     },
   })),
 ] as const;

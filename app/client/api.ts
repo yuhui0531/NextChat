@@ -25,6 +25,7 @@ import { XAIApi } from "./platforms/xai";
 import { ChatGLMApi } from "./platforms/glm";
 import { SiliconflowApi } from "./platforms/siliconflow";
 import { Ai302Api } from "./platforms/ai302";
+import { ImageApi } from "./platforms/image";
 
 export const ROLES = ["system", "user", "assistant"] as const;
 export type MessageRole = (typeof ROLES)[number];
@@ -138,6 +139,9 @@ export class ClientApi {
 
   constructor(provider: ModelProvider = ModelProvider.GPT) {
     switch (provider) {
+      case ModelProvider.Image:
+        this.llm = new ImageApi();
+        break;
       case ModelProvider.GeminiPro:
         this.llm = new GeminiProApi();
         break;
@@ -258,6 +262,7 @@ export function getHeaders(ignoreHeaders: boolean = false) {
     const modelConfig = chatStore.currentSession().mask.modelConfig;
     const isGoogle = modelConfig.providerName === ServiceProvider.Google;
     const isAzure = modelConfig.providerName === ServiceProvider.Azure;
+    const isImage = modelConfig.providerName === ServiceProvider.Image;
     const isAnthropic = modelConfig.providerName === ServiceProvider.Anthropic;
     const isBaidu = modelConfig.providerName == ServiceProvider.Baidu;
     const isByteDance = modelConfig.providerName === ServiceProvider.ByteDance;
@@ -275,6 +280,8 @@ export function getHeaders(ignoreHeaders: boolean = false) {
       ? accessStore.googleApiKey
       : isAzure
       ? accessStore.azureApiKey
+      : isImage
+      ? accessStore.imageApiKey
       : isAnthropic
       ? accessStore.anthropicApiKey
       : isByteDance
@@ -301,6 +308,7 @@ export function getHeaders(ignoreHeaders: boolean = false) {
     return {
       isGoogle,
       isAzure,
+      isImage,
       isAnthropic,
       isBaidu,
       isByteDance,
@@ -330,6 +338,7 @@ export function getHeaders(ignoreHeaders: boolean = false) {
   const {
     isGoogle,
     isAzure,
+    isImage,
     isAnthropic,
     isBaidu,
     isByteDance,
@@ -367,6 +376,8 @@ export function getHeaders(ignoreHeaders: boolean = false) {
 
 export function getClientApi(provider: ServiceProvider): ClientApi {
   switch (provider) {
+    case ServiceProvider.Image:
+      return new ClientApi(ModelProvider.Image);
     case ServiceProvider.Google:
       return new ClientApi(ModelProvider.GeminiPro);
     case ServiceProvider.Anthropic:

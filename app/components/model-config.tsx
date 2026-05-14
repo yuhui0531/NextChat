@@ -15,7 +15,7 @@ export function ModelConfigList(props: {
 }) {
   const allModels = useAllModels();
   const groupModels = groupBy(
-    allModels.filter((v) => v.available),
+    allModels.filter((v: (typeof allModels)[number]) => v.available),
     "provider.providerName",
   );
   const value = `${props.modelConfig.model}@${props.modelConfig?.providerName}`;
@@ -260,8 +260,12 @@ export function ModelConfigList(props: {
           }}
         >
           {allModels
-            .filter((v) => v.available)
-            .map((v, i) => (
+            .filter(
+              (v: (typeof allModels)[number]) =>
+                v.available &&
+                v.provider?.providerName !== ServiceProvider.Image,
+            )
+            .map((v: (typeof allModels)[number], i: number) => (
               <option value={`${v.name}@${v.provider?.providerName}`} key={i}>
                 {v.displayName}({v.provider?.providerName})
               </option>

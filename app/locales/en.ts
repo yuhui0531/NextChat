@@ -333,7 +333,7 @@ const en: LocaleType = {
       },
       Provider: {
         Title: "Model Provider",
-        SubTitle: "Select Azure or OpenAI",
+        SubTitle: "Select OpenAI, Image, Azure or other providers",
       },
       OpenAI: {
         ApiKey: {
@@ -344,6 +344,26 @@ const en: LocaleType = {
 
         Endpoint: {
           Title: "OpenAI Endpoint",
+          SubTitle: "Must start with http(s):// or use /api/openai as default",
+        },
+      },
+      Image: {
+        Title: "AI Image Generation",
+        SubTitle:
+          "Configure a dedicated OpenAI-compatible image API and key for image generation",
+        Model: {
+          Title: "Image Models",
+          SubTitle:
+            "Only configured models are shown. Comma-separated, e.g. dall-e-3, gpt-image-1",
+        },
+        ApiKey: {
+          Title: "Image API Key",
+          SubTitle: "Use a custom OpenAI-compatible image generation API Key",
+          Placeholder: "sk-xxx",
+        },
+
+        Endpoint: {
+          Title: "Image Endpoint",
           SubTitle: "Must start with http(s):// or use /api/openai as default",
         },
       },

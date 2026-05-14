@@ -49,19 +49,16 @@ import Locale, {
   changeLang,
   getLang,
 } from "../locales";
-import { copyToClipboard, clientUpdate, semverCompare } from "../utils";
-import Link from "next/link";
+import { copyToClipboard, semverCompare } from "../utils";
 import {
   Anthropic,
-  Azure,
-  Baidu,
-  Tencent,
   ByteDance,
   Alibaba,
   Moonshot,
   XAI,
   Google,
   GoogleSafetySettingsThreshold,
+  ImageProvider,
   OPENAI_BASE_URL,
   Path,
   RELEASE_URL,
@@ -69,13 +66,11 @@ import {
   ServiceProvider,
   SlotID,
   UPDATE_URL,
-  Stability,
   Iflytek,
   SAAS_CHAT_URL,
   ChatGLM,
   DeepSeek,
   SiliconFlow,
-  AI302,
 } from "../constant";
 import { Prompt, SearchService, usePromptStore } from "../store/prompt";
 import { ErrorBoundary } from "./error";
@@ -777,60 +772,64 @@ export function Settings() {
     </>
   );
 
-  const azureConfigComponent = accessStore.provider ===
-    ServiceProvider.Azure && (
-    <>
+  const imageConfigComponent = (
+    <List>
       <ListItem
-        title={Locale.Settings.Access.Azure.Endpoint.Title}
-        subTitle={
-          Locale.Settings.Access.Azure.Endpoint.SubTitle + Azure.ExampleEndpoint
-        }
+        title={Locale.Settings.Access.Image.Title}
+        subTitle={Locale.Settings.Access.Image.SubTitle}
+      />
+      <ListItem
+        title={Locale.Settings.Access.Image.Endpoint.Title}
+        subTitle={Locale.Settings.Access.Image.Endpoint.SubTitle}
       >
         <input
-          aria-label={Locale.Settings.Access.Azure.Endpoint.Title}
+          aria-label={Locale.Settings.Access.Image.Endpoint.Title}
           type="text"
-          value={accessStore.azureUrl}
-          placeholder={Azure.ExampleEndpoint}
+          value={accessStore.imageUrl}
+          placeholder={ImageProvider.ExampleEndpoint}
           onChange={(e) =>
             accessStore.update(
-              (access) => (access.azureUrl = e.currentTarget.value),
+              (access) => (access.imageUrl = e.currentTarget.value),
             )
           }
         ></input>
       </ListItem>
       <ListItem
-        title={Locale.Settings.Access.Azure.ApiKey.Title}
-        subTitle={Locale.Settings.Access.Azure.ApiKey.SubTitle}
+        title={Locale.Settings.Access.Image.ApiKey.Title}
+        subTitle={Locale.Settings.Access.Image.ApiKey.SubTitle}
       >
         <PasswordInput
-          aria-label={Locale.Settings.Access.Azure.ApiKey.Title}
-          value={accessStore.azureApiKey}
+          aria={Locale.Settings.ShowPassword}
+          aria-label={Locale.Settings.Access.Image.ApiKey.Title}
+          value={accessStore.imageApiKey}
           type="text"
-          placeholder={Locale.Settings.Access.Azure.ApiKey.Placeholder}
+          placeholder={Locale.Settings.Access.Image.ApiKey.Placeholder}
           onChange={(e) => {
             accessStore.update(
-              (access) => (access.azureApiKey = e.currentTarget.value),
+              (access) => (access.imageApiKey = e.currentTarget.value),
             );
           }}
         />
       </ListItem>
       <ListItem
-        title={Locale.Settings.Access.Azure.ApiVerion.Title}
-        subTitle={Locale.Settings.Access.Azure.ApiVerion.SubTitle}
+        title={Locale.Settings.Access.Image.Model.Title}
+        subTitle={Locale.Settings.Access.Image.Model.SubTitle}
+        vertical={true}
       >
         <input
-          aria-label={Locale.Settings.Access.Azure.ApiVerion.Title}
+          aria-label={Locale.Settings.Access.Image.Model.Title}
+          style={{ width: "100%", maxWidth: "unset", textAlign: "left" }}
           type="text"
-          value={accessStore.azureApiVersion}
-          placeholder="2023-08-01-preview"
+          value={accessStore.imageCustomModels}
+          placeholder="dall-e-3, gpt-image-1"
           onChange={(e) =>
             accessStore.update(
-              (access) => (access.azureApiVersion = e.currentTarget.value),
+              (access) => (access.imageCustomModels = e.currentTarget.value),
             )
           }
         ></input>
       </ListItem>
-    </>
+    </List>
   );
 
   const googleConfigComponent = accessStore.provider ===
@@ -965,114 +964,6 @@ export function Settings() {
             )
           }
         ></input>
-      </ListItem>
-    </>
-  );
-
-  const baiduConfigComponent = accessStore.provider ===
-    ServiceProvider.Baidu && (
-    <>
-      <ListItem
-        title={Locale.Settings.Access.Baidu.Endpoint.Title}
-        subTitle={Locale.Settings.Access.Baidu.Endpoint.SubTitle}
-      >
-        <input
-          aria-label={Locale.Settings.Access.Baidu.Endpoint.Title}
-          type="text"
-          value={accessStore.baiduUrl}
-          placeholder={Baidu.ExampleEndpoint}
-          onChange={(e) =>
-            accessStore.update(
-              (access) => (access.baiduUrl = e.currentTarget.value),
-            )
-          }
-        ></input>
-      </ListItem>
-      <ListItem
-        title={Locale.Settings.Access.Baidu.ApiKey.Title}
-        subTitle={Locale.Settings.Access.Baidu.ApiKey.SubTitle}
-      >
-        <PasswordInput
-          aria-label={Locale.Settings.Access.Baidu.ApiKey.Title}
-          value={accessStore.baiduApiKey}
-          type="text"
-          placeholder={Locale.Settings.Access.Baidu.ApiKey.Placeholder}
-          onChange={(e) => {
-            accessStore.update(
-              (access) => (access.baiduApiKey = e.currentTarget.value),
-            );
-          }}
-        />
-      </ListItem>
-      <ListItem
-        title={Locale.Settings.Access.Baidu.SecretKey.Title}
-        subTitle={Locale.Settings.Access.Baidu.SecretKey.SubTitle}
-      >
-        <PasswordInput
-          aria-label={Locale.Settings.Access.Baidu.SecretKey.Title}
-          value={accessStore.baiduSecretKey}
-          type="text"
-          placeholder={Locale.Settings.Access.Baidu.SecretKey.Placeholder}
-          onChange={(e) => {
-            accessStore.update(
-              (access) => (access.baiduSecretKey = e.currentTarget.value),
-            );
-          }}
-        />
-      </ListItem>
-    </>
-  );
-
-  const tencentConfigComponent = accessStore.provider ===
-    ServiceProvider.Tencent && (
-    <>
-      <ListItem
-        title={Locale.Settings.Access.Tencent.Endpoint.Title}
-        subTitle={Locale.Settings.Access.Tencent.Endpoint.SubTitle}
-      >
-        <input
-          aria-label={Locale.Settings.Access.Tencent.Endpoint.Title}
-          type="text"
-          value={accessStore.tencentUrl}
-          placeholder={Tencent.ExampleEndpoint}
-          onChange={(e) =>
-            accessStore.update(
-              (access) => (access.tencentUrl = e.currentTarget.value),
-            )
-          }
-        ></input>
-      </ListItem>
-      <ListItem
-        title={Locale.Settings.Access.Tencent.ApiKey.Title}
-        subTitle={Locale.Settings.Access.Tencent.ApiKey.SubTitle}
-      >
-        <PasswordInput
-          aria-label={Locale.Settings.Access.Tencent.ApiKey.Title}
-          value={accessStore.tencentSecretId}
-          type="text"
-          placeholder={Locale.Settings.Access.Tencent.ApiKey.Placeholder}
-          onChange={(e) => {
-            accessStore.update(
-              (access) => (access.tencentSecretId = e.currentTarget.value),
-            );
-          }}
-        />
-      </ListItem>
-      <ListItem
-        title={Locale.Settings.Access.Tencent.SecretKey.Title}
-        subTitle={Locale.Settings.Access.Tencent.SecretKey.SubTitle}
-      >
-        <PasswordInput
-          aria-label={Locale.Settings.Access.Tencent.SecretKey.Title}
-          value={accessStore.tencentSecretKey}
-          type="text"
-          placeholder={Locale.Settings.Access.Tencent.SecretKey.Placeholder}
-          onChange={(e) => {
-            accessStore.update(
-              (access) => (access.tencentSecretKey = e.currentTarget.value),
-            );
-          }}
-        />
       </ListItem>
     </>
   );
@@ -1361,46 +1252,6 @@ export function Settings() {
     </>
   );
 
-  const stabilityConfigComponent = accessStore.provider ===
-    ServiceProvider.Stability && (
-    <>
-      <ListItem
-        title={Locale.Settings.Access.Stability.Endpoint.Title}
-        subTitle={
-          Locale.Settings.Access.Stability.Endpoint.SubTitle +
-          Stability.ExampleEndpoint
-        }
-      >
-        <input
-          aria-label={Locale.Settings.Access.Stability.Endpoint.Title}
-          type="text"
-          value={accessStore.stabilityUrl}
-          placeholder={Stability.ExampleEndpoint}
-          onChange={(e) =>
-            accessStore.update(
-              (access) => (access.stabilityUrl = e.currentTarget.value),
-            )
-          }
-        ></input>
-      </ListItem>
-      <ListItem
-        title={Locale.Settings.Access.Stability.ApiKey.Title}
-        subTitle={Locale.Settings.Access.Stability.ApiKey.SubTitle}
-      >
-        <PasswordInput
-          aria-label={Locale.Settings.Access.Stability.ApiKey.Title}
-          value={accessStore.stabilityApiKey}
-          type="text"
-          placeholder={Locale.Settings.Access.Stability.ApiKey.Placeholder}
-          onChange={(e) => {
-            accessStore.update(
-              (access) => (access.stabilityApiKey = e.currentTarget.value),
-            );
-          }}
-        />
-      </ListItem>
-    </>
-  );
   const lflytekConfigComponent = accessStore.provider ===
     ServiceProvider.Iflytek && (
     <>
@@ -1459,46 +1310,6 @@ export function Settings() {
     </>
   );
 
-  const ai302ConfigComponent = accessStore.provider === ServiceProvider["302.AI"] && (
-    <>
-      <ListItem
-          title={Locale.Settings.Access.AI302.Endpoint.Title}
-          subTitle={
-            Locale.Settings.Access.AI302.Endpoint.SubTitle +
-            AI302.ExampleEndpoint
-          }
-        >
-          <input
-            aria-label={Locale.Settings.Access.AI302.Endpoint.Title}
-            type="text"
-            value={accessStore.ai302Url}
-            placeholder={AI302.ExampleEndpoint}
-            onChange={(e) =>
-              accessStore.update(
-                (access) => (access.ai302Url = e.currentTarget.value),
-              )
-            }
-          ></input>
-        </ListItem>
-        <ListItem
-          title={Locale.Settings.Access.AI302.ApiKey.Title}
-          subTitle={Locale.Settings.Access.AI302.ApiKey.SubTitle}
-        >
-          <PasswordInput
-            aria-label={Locale.Settings.Access.AI302.ApiKey.Title}
-            value={accessStore.ai302ApiKey}
-            type="text"
-            placeholder={Locale.Settings.Access.AI302.ApiKey.Placeholder}
-            onChange={(e) => {
-              accessStore.update(
-                (access) => (access.ai302ApiKey = e.currentTarget.value),
-              );
-            }}
-          />
-        </ListItem>
-      </>
-  );
-
   return (
     <ErrorBoundary>
       <div className="window-header" data-tauri-drag-region>
@@ -1549,39 +1360,6 @@ export function Settings() {
                 <Avatar avatar={config.avatar} />
               </div>
             </Popover>
-          </ListItem>
-
-          <ListItem
-            title={Locale.Settings.Update.Version(currentVersion ?? "unknown")}
-            subTitle={
-              checkingUpdate
-                ? Locale.Settings.Update.IsChecking
-                : hasNewVersion
-                ? Locale.Settings.Update.FoundUpdate(remoteId ?? "ERROR")
-                : Locale.Settings.Update.IsLatest
-            }
-          >
-            {checkingUpdate ? (
-              <LoadingIcon />
-            ) : hasNewVersion ? (
-              clientConfig?.isApp ? (
-                <IconButton
-                  icon={<ResetIcon></ResetIcon>}
-                  text={Locale.Settings.Update.GoToUpdate}
-                  onClick={() => clientUpdate()}
-                />
-              ) : (
-                <Link href={updateUrl} target="_blank" className="link">
-                  {Locale.Settings.Update.GoToUpdate}
-                </Link>
-              )
-            ) : (
-              <IconButton
-                icon={<ResetIcon></ResetIcon>}
-                text={Locale.Settings.Update.CheckUpdate}
-                onClick={() => checkUpdate(true)}
-              />
-            )}
           </ListItem>
 
           <ListItem title={Locale.Settings.SendKey}>
@@ -1815,10 +1593,9 @@ export function Settings() {
           </ListItem>
         </List>
 
-        <List id={SlotID.CustomModel}>
-          {saasStartComponent}
-          {accessCodeComponent}
+        <List id={SlotID.CustomModel}>{accessCodeComponent}</List>
 
+        <List id={SlotID.CustomModel}>
           {!accessStore.hideUserApiKey && (
             <>
               {useCustomConfigComponent}
@@ -1849,21 +1626,16 @@ export function Settings() {
                   </ListItem>
 
                   {openAIConfigComponent}
-                  {azureConfigComponent}
                   {googleConfigComponent}
                   {anthropicConfigComponent}
-                  {baiduConfigComponent}
                   {byteDanceConfigComponent}
                   {alibabaConfigComponent}
-                  {tencentConfigComponent}
                   {moonshotConfigComponent}
                   {deepseekConfigComponent}
-                  {stabilityConfigComponent}
                   {lflytekConfigComponent}
                   {XAIConfigComponent}
                   {chatglmConfigComponent}
                   {siliconflowConfigComponent}
-                  {ai302ConfigComponent}
                 </>
               )}
             </>
@@ -1914,7 +1686,7 @@ export function Settings() {
             ></input>
           </ListItem>
         </List>
-
+        {!accessStore.hideUserApiKey && imageConfigComponent}
         <List>
           <ModelConfigList
             modelConfig={config.modelConfig}

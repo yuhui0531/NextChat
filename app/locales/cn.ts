@@ -343,6 +343,24 @@ const cn = {
           SubTitle: "除默认地址外，必须包含 http(s)://",
         },
       },
+      Image: {
+        Title: "AI图片生成",
+        SubTitle: "配置专用的兼容 OpenAI 的图片 API 和密钥以进行图片生成",
+        Model: {
+          Title: "图片模型",
+          SubTitle: "仅显示已配置的模型。用逗号分隔，例如 gpt-image-2",
+        },
+        ApiKey: {
+          Title: "图片 API Key",
+          SubTitle: "使用自定义的兼容 OpenAI 的图片生成 API Key",
+          Placeholder: "sk-xxx",
+        },
+
+        Endpoint: {
+          Title: "图片接口地址",
+          SubTitle: "必须以 http(s):// 开头，或使用 /api/openai 作为默认值",
+        },
+      },
       Azure: {
         ApiKey: {
           Title: "接口密钥",

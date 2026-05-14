@@ -67,7 +67,6 @@ import {
   copyToClipboard,
   getMessageImages,
   getMessageTextContent,
-  isDalle3,
   isVisionModel,
   safeLocalStorage,
   getModelSizes,
@@ -95,6 +94,7 @@ import {
   Modal,
   Selector,
   showConfirm,
+  showImageModal,
   showPrompt,
   showToast,
 } from "./ui-lib";
@@ -115,7 +115,7 @@ import { ChatCommandPrefix, useChatCommand, useCommand } from "../command";
 import { prettyObject } from "../utils/format";
 import { ExportMessageModal } from "./exporter";
 import { getClientConfig } from "../config/client";
-import { useAllModels } from "../utils/hooks";
+import { useAllModels, useImageModels } from "../utils/hooks";
 import { ClientApi, MultimodalContent } from "../client/api";
 import { createTTSPlayer } from "../utils/audio";
 import { MsEdgeTTS, OUTPUT_FORMAT } from "../utils/ms_edge_tts";
@@ -493,6 +493,8 @@ function useScrollToBottom(
 
 export function ChatActions(props: {
   uploadImage: () => void;
+  generateImage: () => void;
+  imageActionEnabled: boolean;
   setAttachImages: (images: string[]) => void;
   setUploading: (uploading: boolean) => void;
   showPromptModal: () => void;
@@ -531,13 +533,19 @@ export function ChatActions(props: {
     session.mask.modelConfig?.providerName || ServiceProvider.OpenAI;
   const allModels = useAllModels();
   const models = useMemo(() => {
-    const filteredModels = allModels.filter((m) => m.available);
-    const defaultModel = filteredModels.find((m) => m.isDefault);
+    const filteredModels = allModels.filter(
+      (m: (typeof allModels)[number]) => m.available,
+    );
+    const defaultModel = filteredModels.find(
+      (m: (typeof filteredModels)[number]) => m.isDefault,
+    );
 
     if (defaultModel) {
       const arr = [
         defaultModel,
-        ...filteredModels.filter((m) => m !== defaultModel),
+        ...filteredModels.filter(
+          (m: (typeof filteredModels)[number]) => m !== defaultModel,
+        ),
       ];
       return arr;
     } else {
@@ -546,7 +554,7 @@ export function ChatActions(props: {
   }, [allModels]);
   const currentModelName = useMemo(() => {
     const model = models.find(
-      (m) =>
+      (m: (typeof models)[number]) =>
         m.name == currentModel &&
         m?.provider?.providerName == currentProviderName,
     );
@@ -559,7 +567,7 @@ export function ChatActions(props: {
   const [showSizeSelector, setShowSizeSelector] = useState(false);
   const [showQualitySelector, setShowQualitySelector] = useState(false);
   const [showStyleSelector, setShowStyleSelector] = useState(false);
-  const modelSizes = getModelSizes(currentModel);
+  const modelSizes = getModelSizes(currentModel, currentProviderName);
   const dalle3Qualitys: DalleQuality[] = ["standard", "hd"];
   const dalle3Styles: DalleStyle[] = ["vivid", "natural"];
   const currentSize =
@@ -579,10 +587,14 @@ export function ChatActions(props: {
 
     // if current model is not available
     // switch to first available model
-    const isUnavailableModel = !models.some((m) => m.name === currentModel);
+    const isUnavailableModel = !models.some(
+      (m: (typeof models)[number]) => m.name === currentModel,
+    );
     if (isUnavailableModel && models.length > 0) {
       // show next model to default model if exist
-      let nextModel = models.find((model) => model.isDefault) || models[0];
+      let nextModel =
+        models.find((model: (typeof models)[number]) => model.isDefault) ||
+        models[0];
       chatStore.updateTargetSession(session, (session) => {
         session.mask.modelConfig.model = nextModel.name;
         session.mask.modelConfig.providerName = nextModel?.provider
@@ -673,6 +685,14 @@ export function ChatActions(props: {
           }}
         />
 
+        {props.imageActionEnabled && (
+          <ChatAction
+            onClick={props.generateImage}
+            text={"生图"}
+            icon={<StyleIcon />}
+          />
+        )}
+
         <ChatAction
           onClick={() => setShowModelSelector(true)}
           text={currentModelName}
@@ -702,7 +722,7 @@ export function ChatActions(props: {
               });
               if (providerName == "ByteDance") {
                 const selectedModel = models.find(
-                  (m) =>
+                  (m: (typeof models)[number]) =>
                     m.name == model &&
                     m?.provider?.providerName == providerName,
                 );
@@ -714,7 +734,7 @@ export function ChatActions(props: {
           />
         )}
 
-        {supportsCustomSize(currentModel) && (
+        {supportsCustomSize(currentModel, currentProviderName) && (
           <ChatAction
             onClick={() => setShowSizeSelector(true)}
             text={currentSize}
@@ -741,7 +761,7 @@ export function ChatActions(props: {
           />
         )}
 
-        {isDalle3(currentModel) && (
+        {currentProviderName === ServiceProvider.Image && (
           <ChatAction
             onClick={() => setShowQualitySelector(true)}
             text={currentQuality}
@@ -768,7 +788,7 @@ export function ChatActions(props: {
           />
         )}
 
-        {isDalle3(currentModel) && (
+        {currentProviderName === ServiceProvider.Image && (
           <ChatAction
             onClick={() => setShowStyleSelector(true)}
             text={currentStyle}
@@ -1030,6 +1050,7 @@ function _Chat() {
   );
   const [hitBottom, setHitBottom] = useState(true);
   const isMobileScreen = useMobileScreen();
+  const configuredImageModels = useImageModels();
   const navigate = useNavigate();
   const [attachImages, setAttachImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -1068,6 +1089,41 @@ function _Chat() {
   useEffect(measure, [userInput]);
 
   // chat commands shortcuts
+  const shouldGenerateImageFromText = (text: string) => {
+    const trimmed = text.trim();
+    return /^(帮我生图|帮我画|帮我创建图|帮我生成图|生成图片|创建图片|画一张|画一幅|画一个|画个)/.test(
+      trimmed,
+    );
+  };
+
+  const finishSubmit = (text: string) => {
+    chatStore.setLastInput(text);
+    setUserInput("");
+    setPromptHints([]);
+    if (!isMobileScreen) inputRef.current?.focus();
+    setAutoScroll(true);
+  };
+
+  const submitImage = (text: string) => {
+    if (text.trim() === "") return;
+    if (configuredImageModels.length === 0) {
+      showToast("请先在设置里的 AI 生图中配置生图模型");
+      return;
+    }
+
+    const selectedModel = configuredImageModels[0];
+    setIsLoading(true);
+    chatStore
+      .onImageUserInput(text, selectedModel.name, {
+        size: config.modelConfig.size,
+        quality: config.modelConfig.quality,
+        style: config.modelConfig.style,
+      })
+      .then(() => setIsLoading(false));
+    setAttachImages([]);
+    finishSubmit(text);
+  };
+
   const chatCommands = useChatCommand({
     new: () => chatStore.newSession(),
     newm: () => navigate(Path.NewChat),
@@ -1109,6 +1165,10 @@ function _Chat() {
       setUserInput("");
       setPromptHints([]);
       matchCommand.invoke();
+      return;
+    }
+    if (shouldGenerateImageFromText(userInput)) {
+      submitImage(userInput);
       return;
     }
     setIsLoading(true);
@@ -1990,6 +2050,9 @@ function _Chat() {
                                 className={styles["chat-message-item-image"]}
                                 src={getMessageImages(message)[0]}
                                 alt=""
+                                onClick={() =>
+                                  showImageModal(getMessageImages(message)[0])
+                                }
                               />
                             )}
                             {getMessageImages(message).length > 1 && (
@@ -2014,6 +2077,7 @@ function _Chat() {
                                         key={index}
                                         src={image}
                                         alt=""
+                                        onClick={() => showImageModal(image)}
                                       />
                                     );
                                   },
@@ -2047,6 +2111,8 @@ function _Chat() {
 
               <ChatActions
                 uploadImage={uploadImage}
+                generateImage={() => submitImage(userInput)}
+                imageActionEnabled={configuredImageModels.length > 0}
                 setAttachImages={setAttachImages}
                 setUploading={setUploading}
                 showPromptModal={() => setShowPromptModal(true)}
