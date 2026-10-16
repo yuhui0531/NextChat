@@ -83,7 +83,7 @@ This fork is based on [ChatGPTNextWeb/NextChat](https://github.com/ChatGPTNextWe
 
 > Before build, please set env ENABLE_MCP=true
 
-<img src="https://github.com/user-attachments/assets/d8851f40-4e36-4335-b1a4-ec1e11488c7e"/>
+<img src="./docs/images/mcp-market.png" alt="NextChat MCP Market" />
 
 ## Enterprise Edition
 
