@@ -385,7 +385,8 @@ Customize Stability API url.
 
 ### `ENABLE_MCP` (optional)
 
-Enable MCP（Model Context Protocol）Feature
+Enable MCP（Model Context Protocol）Feature. For security, MCP also requires
+`CODE` to be configured; all MCP server actions verify that access code.
 
 ### `SILICONFLOW_API_KEY` (optional)
 
